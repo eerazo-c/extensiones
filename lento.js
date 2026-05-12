@@ -5,13 +5,13 @@
 //                                                    +:+ +:+         +:+     //
 //   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        //
 //                                                +#+#+#+#+#+   +#+           //
-//   Created: 2026/05/12 18:46:57 by elerazo-          #+#    #+#             //
-//   Updated: 2026/05/12 18:47:28 by elerazo-         ###   ########.fr       //
+//   Created: 2026/05/12 19:28:02 by elerazo-          #+#    #+#             //
+//   Updated: 2026/05/12 19:28:06 by elerazo-         ###   ########.fr       //
 //                                                                            //
 // ************************************************************************** //
 // --- CONFIGURACIÓN DE DATOS ---
 const CONFIG = {
-  provinciaText: "Barcelona", // Buscamos por texto para ser más precisos
+  provinciaText: "Barcelona", 
   nie: "Z2535872N",
   nombreCompleto: "JOSE ARMANDO ERAZO CHACON",
   pais: "HONDURAS"
@@ -19,24 +19,44 @@ const CONFIG = {
 
 function completarTramite() {
   
+  // --- LÓGICA DE DETECCIÓN DE MENSAJE ---
+  const cuerpoTexto = document.body.innerText;
+  const mensajeNoHayCitas = "En este momento no hay citas disponibles";
+
+  // CASO A: Aparece el mensaje de que NO hay citas -> Recarga en 10 minutos
+  if (cuerpoTexto.includes(mensajeNoHayCitas)) {
+    console.log("No hay citas. Programando recarga en 10 minutos...");
+    clearInterval(interval); // Detenemos el llenado automático
+    setTimeout(() => {
+      window.location.reload();
+    }, 600000); // 10 minutos (10 * 60 * 1000)
+    return;
+  }
+
+  // CASO B: Estamos en la parte final pero NO hay mensaje de error -> ¡HAY CITA!
+  // Si vemos el código de operación o estamos en selección de oficina, paramos todo.
+  if (window.location.href.includes("citar") && 
+      !cuerpoTexto.includes(mensajeNoHayCitas) && 
+      !document.getElementById('txtIdCitado') && 
+      !document.getElementById('tramiteGrupo[0]')) {
+    console.log("¡CITA PROBABLEMENTE ENCONTRADA! Deteniendo script.");
+    clearInterval(interval);
+    return;
+  }
+
   // 1. SELECCIÓN DE PROVINCIA (Solución mejorada)
   const selectProvincia = document.querySelector('select[name="provincia"]') || document.getElementById('form');
   
-  // Si estamos en la primera página y existe el select de provincias
   if (selectProvincia && selectProvincia.tagName === 'SELECT' && !document.getElementById('tramiteGrupo[0]')) {
-    
     for (let i = 0; i < selectProvincia.options.length; i++) {
       if (selectProvincia.options[i].text.includes(CONFIG.provinciaText)) {
         selectProvincia.selectedIndex = i;
-        
-        // Lanzamos el evento "change" para que la página sepa que elegimos Barcelona
         selectProvincia.dispatchEvent(new Event('change', { bubbles: true }));
         
-        // Esperamos un momento y damos a aceptar
         setTimeout(() => {
           const btnAceptar = document.getElementById('btnAceptar');
           if (btnAceptar) btnAceptar.click();
-        }, 1000);
+        }, 700);
         return;
       }
     }
@@ -54,7 +74,7 @@ function completarTramite() {
     }
     setTimeout(() => {
         document.getElementById('btnAceptar')?.click();
-    }, 1000);
+    }, 700);
     return;
   }
 
@@ -67,7 +87,7 @@ function completarTramite() {
 
   // 4. FORMULARIO DE DATOS PERSONALES
   const campoNIE = document.getElementById('txtIdCitado');
-  if (campoNIE && campoNIE.value === "") { // Solo si está vacío para evitar bucles
+  if (campoNIE && campoNIE.value === "") { 
     campoNIE.value = CONFIG.nie;
     
     const campoNombre = document.getElementById('txtDesCitado');
@@ -85,7 +105,7 @@ function completarTramite() {
     
     setTimeout(() => {
         document.getElementById('btnEnviar')?.click();
-    }, 1000);
+    }, 700);
     return;
   }
 
@@ -96,9 +116,8 @@ function completarTramite() {
   }
 }
 
-// Intentar ejecutar cada segundo por si la página carga lento
+// Intentar ejecutar cada 1.5 segundos
 const interval = setInterval(() => {
     completarTramite();
-    // Si llegamos al botón final, podemos limpiar el intervalo
-    if (document.getElementById('btnEnviar')) clearInterval(interval);
+    // Quitamos la limpieza automática del intervalo para que pueda detectar el mensaje de "No hay citas" al final
 }, 1500);

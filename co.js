@@ -1,6 +1,17 @@
+// ************************************************************************** //
+//                                                                            //
+//                                                        :::      ::::::::   //
+//   content.js                                         :+:      :+:    :+:   //
+//                                                    +:+ +:+         +:+     //
+//   By: elerazo- <elerazo-@student.42.fr>          +#+  +:+       +#+        //
+//                                                +#+#+#+#+#+   +#+           //
+//   Created: 2026/05/12 18:46:57 by elerazo-          #+#    #+#             //
+//   Updated: 2026/05/12 18:47:28 by elerazo-         ###   ########.fr       //
+//                                                                            //
+// ************************************************************************** //
 // --- CONFIGURACIÓN DE DATOS ---
 const CONFIG = {
-  provinciaText: "Barcelona", 
+  provinciaText: "Barcelona", // Buscamos por texto para ser más precisos
   nie: "Z2535872N",
   nombreCompleto: "JOSE ARMANDO ERAZO CHACON",
   pais: "HONDURAS"
@@ -8,20 +19,24 @@ const CONFIG = {
 
 function completarTramite() {
   
-  const cuerpoTexto = document.body.innerText;
-  const mensajeNoHayCitas = "En este momento no hay citas disponibles";
- 
-  // 1. SELECCIÓN DE PROVINCIA
+  // 1. SELECCIÓN DE PROVINCIA (Solución mejorada)
   const selectProvincia = document.querySelector('select[name="provincia"]') || document.getElementById('form');
+  
+  // Si estamos en la primera página y existe el select de provincias
   if (selectProvincia && selectProvincia.tagName === 'SELECT' && !document.getElementById('tramiteGrupo[0]')) {
+    
     for (let i = 0; i < selectProvincia.options.length; i++) {
       if (selectProvincia.options[i].text.includes(CONFIG.provinciaText)) {
         selectProvincia.selectedIndex = i;
+        
+        // Lanzamos el evento "change" para que la página sepa que elegimos Barcelona
         selectProvincia.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Esperamos un momento y damos a aceptar
         setTimeout(() => {
           const btnAceptar = document.getElementById('btnAceptar');
           if (btnAceptar) btnAceptar.click();
-        }, 700);
+        }, 500);
         return;
       }
     }
@@ -39,11 +54,11 @@ function completarTramite() {
     }
     setTimeout(() => {
         document.getElementById('btnAceptar')?.click();
-    }, 700);
+    }, 500);
     return;
   }
 
-  // 3. BOTÓN ENTRAR
+  // 3. BOTÓN ENTRAR / PRESENTACIÓN SIN CL@VE
   const btnEntrar = document.getElementById('btnEntrar');
   if (btnEntrar) {
     btnEntrar.click();
@@ -52,10 +67,12 @@ function completarTramite() {
 
   // 4. FORMULARIO DE DATOS PERSONALES
   const campoNIE = document.getElementById('txtIdCitado');
-  if (campoNIE && campoNIE.value === "") { 
+  if (campoNIE && campoNIE.value === "") { // Solo si está vacío para evitar bucles
     campoNIE.value = CONFIG.nie;
+    
     const campoNombre = document.getElementById('txtDesCitado');
     if (campoNombre) campoNombre.value = CONFIG.nombreCompleto;
+
     const selectPais = document.getElementById('txtPaisNac');
     if (selectPais) {
         for (let i = 0; i < selectPais.options.length; i++) {
@@ -65,38 +82,23 @@ function completarTramite() {
             }
         }
     }
+    
     setTimeout(() => {
         document.getElementById('btnEnviar')?.click();
-    }, 700);
+    }, 500);
     return;
   }
 
-  // 5. BOTÓN FINAL: SOLICITAR CITA (Solo se pulsa si NO está el mensaje de error)
+  // 5. BOTÓN FINAL: SOLICITAR CITA
   const btnSolicitar = document.getElementById('btnSubmit');
-  if (btnSolicitar && !cuerpoTexto.includes(mensajeNoHayCitas)) {
+  if (btnSolicitar) {
     btnSolicitar.click();
   }
- // --- LÓGICA DE DETECCIÓN PARA PARAR (ÉXITO) ---
-  // Solo paramos si el script detecta que estamos eligiendo oficina o fecha
-  if (cuerpoTexto.includes("Seleccione la oficina") || cuerpoTexto.includes("Cita para el día")) {
-    console.log("¡CITA ENCONTRADA! Deteniendo script para que elijas.");
-    clearInterval(interval);
-    return;
-  }
-
-  // --- LÓGICA PARA RECARGAR (FALLO) ---
-  if (cuerpoTexto.includes(mensajeNoHayCitas)) {
-    console.log("No hay citas. Recargando en 10 minutos...");
-    clearInterval(interval);
-    setTimeout(() => {
-      window.location.reload();
-    }, 600000); //test -> 6000000
-    return;
-  }
-
 }
 
-// Intervalo principal
+// Intentar ejecutar cada segundo por si la página carga lento
 const interval = setInterval(() => {
     completarTramite();
-}, 1500);
+    // Si llegamos al botón final, podemos limpiar el intervalo
+    if (document.getElementById('btnEnviar')) clearInterval(interval);
+}, 6000);
