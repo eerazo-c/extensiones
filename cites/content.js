@@ -1,8 +1,8 @@
 // --- CONFIGURACIÓN DE DATOS ---
 const CONFIG = {
   provinciaText: "Barcelona", 
-  nie: "Z2535872N",
-  nombreCompleto: "JOSE ARMANDO ERAZO CHACON",
+  nie: "Z3599295F",
+  nombreCompleto: "IRIK ELIZABETH TORRES MARTINEZ",
   pais: "HONDURAS"
 };
 
