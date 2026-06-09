@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Revelador de Texto Oculto",
+  "version": "1.0",
+  "description": "Cambia elementos invisibles (opacidad 0, font 0, blanco) a visibles y rojos.",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
